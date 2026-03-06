@@ -45,9 +45,19 @@ const Sidebars = () => {
   const [selected, setSelected] = useState("Dashboard");
   return (
     <Box
+      height={"100vh"}
       sx={{
+        // 2. Target the actual scrollable area of react-pro-sidebar
         "& .ps-sidebar-container": {
-          background: `${colors.primary[400]} !important`,
+          backgroundColor: `${colors.primary[400]} !important`,
+          // 3. Force vertical scroll ONLY
+          overflowY: "auto !important",
+          overflowX: "hidden !important",
+        },
+        // 4. Ensure the sidebar itself doesn't exceed the parent height
+        "& .ps-sidebar-root": {
+          height: "100%",
+          border: "none",
         },
         "& .ps-menu-button": {
           padding: "5px 35px 5px 20px !important",
@@ -60,6 +70,15 @@ const Sidebars = () => {
         },
         "& .ps-menu-icon": {
           backgroundColor: "transparent !important",
+        },
+
+        /* Scrollbar Styling */
+        "& .ps-sidebar-container::-webkit-scrollbar": {
+          width: "7px",
+        },
+        "& .ps-sidebar-container::-webkit-scrollbar-thumb": {
+          backgroundColor: colors.primary[500],
+          borderRadius: "10px",
         },
       }}
     >

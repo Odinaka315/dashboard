@@ -18,11 +18,30 @@ const Dashboard = () => {
   const theme = useTheme();
   const colors = tokens(theme.palette.mode);
   return (
-    <Box m={"20px"}>
+    <Box
+      m={"20px"}
+      height="90vh" // Restrict height to viewable area
+      overflow="auto" // Enable scrolling for this box only
+      pr="10px" // Add some padding so the scrollbar doesn't hug the grid
+      sx={{
+        "&::-webkit-scrollbar": {
+          width: "8px",
+        },
+        "&::-webkit-scrollbar-thumb": {
+          backgroundColor: colors.primary[500],
+          borderRadius: "10px",
+        },
+      }}
+    >
       <Box
         display={"flex"}
         justifyContent={"space-between"}
         alignItems={"center"}
+        position="sticky" // Keeps header at the top during scroll
+        top="0"
+        zIndex="10"
+        pb="20px"
+        backgroundColor={theme.palette.background.default}
       >
         <Header title={"DASHBOARD"} subtitle={"Welcome to your dashboard"} />
         <Box>
