@@ -1,0 +1,12 @@
+{
+  "events": [
+    {
+      "id": "undefined-1772446911227",
+      "title": "sdfghjkl",
+      "start": "2026-03-23",
+      "end": "2026-03-24",
+      "allDay": true
+    }
+  ],
+  "$schema": "./node_modules/json-server/schema.json"
+}
