@@ -75,8 +75,8 @@ const Dashboard = () => {
     },
   ];
   // Handle loading state to prevent the "map of undefined" error
-  if (isLoading) return <Box>Loading Transactions...</Box>;
-  if (error) return <Box>Error loading data: {error.message}</Box>;
+  // if (isLoading) return <Box>Loading Transactions...</Box>;
+  // if (error) return <Box>Error loading data: {error.message}</Box>;
   return (
     <Box
       m={"20px"}
