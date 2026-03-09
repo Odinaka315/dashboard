@@ -1,18 +1,30 @@
 import { Box, Typography, useTheme } from "@mui/material";
 import { DataGrid } from "@mui/x-data-grid";
 import { tokens } from "../../theme";
-import { mockDataInvoices } from "../../data/mockData";
+
 import AdminPanelSettingsOutlinedIcon from "@mui/icons-material/AdminPanelSettingsOutlined";
 import LockOpenOutlinedIcon from "@mui/icons-material/LockOpenOutlined";
 import SecurityOutlinedIcon from "@mui/icons-material/SecurityOutlined";
 import Header from "../../components/Header";
-
+import { useQuery } from "@tanstack/react-query";
 import React from "react";
 
 const Invoices = () => {
   const theme = useTheme();
   const colors = tokens(theme.palette.mode);
 
+  const fetchInvoices = async () => {
+    const response = await fetch("http://localhost:5000/invoices");
+    const result = await response.json();
+
+    return result.map((user) => ({
+      ...user,
+    }));
+  };
+  const { data, isLoading, isError, error } = useQuery({
+    queryKey: ["team"],
+    queryFn: fetchInvoices,
+  });
   const columns = [
     { field: "id", headerName: "ID" },
     {
@@ -80,7 +92,13 @@ const Invoices = () => {
           },
         }}
       >
-        <DataGrid checkboxSelection rows={mockDataInvoices} columns={columns} />
+        <DataGrid
+          checkboxSelection
+          rows={data || []}
+          columns={columns}
+          loading={isLoading}
+        />
+        {isError && <div style={{ color: "red" }}>Error: {error.message}</div>}
       </Box>
     </Box>
   );

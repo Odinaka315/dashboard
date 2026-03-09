@@ -1,7 +1,7 @@
 import { Box, Typography, useTheme } from "@mui/material";
 import { DataGrid } from "@mui/x-data-grid";
 import { tokens } from "../../theme";
-import { mockDataTeam } from "../../data/mockData";
+import { useQuery } from "@tanstack/react-query";
 import AdminPanelSettingsOutlinedIcon from "@mui/icons-material/AdminPanelSettingsOutlined";
 import LockOpenOutlinedIcon from "@mui/icons-material/LockOpenOutlined";
 import SecurityOutlinedIcon from "@mui/icons-material/SecurityOutlined";
@@ -13,6 +13,18 @@ const Team = () => {
   const theme = useTheme();
   const colors = tokens(theme.palette.mode);
 
+  const fetchTeam = async () => {
+    const response = await fetch("http://localhost:5000/team");
+    const result = await response.json();
+
+    return result.map((user) => ({
+      ...user,
+    }));
+  };
+  const { data, isLoading, isError, error } = useQuery({
+    queryKey: ["team"],
+    queryFn: fetchTeam,
+  });
   const columns = [
     { field: "id", headerName: "ID" },
     {
@@ -98,7 +110,8 @@ const Team = () => {
           },
         }}
       >
-        <DataGrid rows={mockDataTeam} columns={columns} />
+        <DataGrid rows={data || []} columns={columns} loading={isLoading} />
+        {isError && <div style={{ color: "red" }}>Error: {error.message}</div>}
       </Box>
     </Box>
   );

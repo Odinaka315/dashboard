@@ -6,22 +6,21 @@ import Header from "../../components/Header";
 import { useQuery } from "@tanstack/react-query";
 import React from "react";
 
-const fetchContacts = async () => {
-  const response = await fetch("https://jsonplaceholder.typicode.com/users");
-  const result = await response.json();
-
-  return result.map((user) => ({
-    ...user,
-    // Extracting nested strings into new top-level keys
-    street: user.address?.street,
-    city: user.address?.city,
-    zipcode: user.address?.zipcode,
-  }));
-};
-
 const Contacts = () => {
   const theme = useTheme();
   const colors = tokens(theme.palette.mode);
+  const fetchContacts = async () => {
+    const response = await fetch("http://localhost:5000/users");
+    const result = await response.json();
+
+    return result.map((user) => ({
+      ...user,
+      // Extracting nested strings into new top-level keys
+      street: user.address?.street,
+      city: user.address?.city,
+      zipcode: user.address?.zipcode,
+    }));
+  };
   const { data, isLoading, isError, error } = useQuery({
     queryKey: ["contacts"],
     queryFn: fetchContacts,

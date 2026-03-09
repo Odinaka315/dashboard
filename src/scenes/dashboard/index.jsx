@@ -2,7 +2,6 @@ import React from "react";
 import Header from "../../components/Header";
 import { Box, Button, IconButton, Typography, useTheme } from "@mui/material";
 import { tokens } from "../../theme";
-import { mockTransactions } from "../../data/mockData";
 import DownloadOutlinedIcon from "@mui/icons-material/DownloadOutlined";
 import EmailIcon from "@mui/icons-material/Email";
 import PointOfSaleIcon from "@mui/icons-material/PointOfSale";
@@ -13,10 +12,71 @@ import BarChart from "../../components/BarChart";
 import GeographyChart from "../../components/GeographyChart";
 import StatBox from "../../components/StatBox";
 import ProgressCircle from "../../components/ProgressCircle";
+import { useQuery } from "@tanstack/react-query";
 
 const Dashboard = () => {
   const theme = useTheme();
   const colors = tokens(theme.palette.mode);
+  const {
+    data: transactions,
+    isLoading,
+    error,
+  } = useQuery({
+    queryKey: ["transactions"],
+    queryFn: async () => {
+      const response = await fetch("http://localhost:5000/transactions");
+      if (!response.ok) throw new Error("Network response was not ok");
+      return response.json();
+    },
+  });
+
+  const row1 = [
+    {
+      title: "12,361",
+      subtitle: "Emails sent",
+      progress: "0.75",
+      increase: "+14%",
+      icon: (
+        <EmailIcon sx={{ color: colors.greenAccent[600], fontSize: "26px" }} />
+      ),
+    },
+    {
+      title: "32,441",
+      subtitle: "New  clients",
+      progress: "0.30",
+      increase: "+5%",
+      icon: (
+        <PersonAddIcon
+          sx={{ color: colors.greenAccent[600], fontSize: "26px" }}
+        />
+      ),
+    },
+    {
+      title: "32,441",
+      subtitle: "New  clients",
+      progress: "0.30",
+      increase: "+5%",
+      icon: (
+        <PersonAddIcon
+          sx={{ color: colors.greenAccent[600], fontSize: "26px" }}
+        />
+      ),
+    },
+    {
+      title: "1,325,134",
+      subtitle: "Traffic Inbound",
+      progress: "0.80",
+      increase: "+43%",
+      icon: (
+        <TrafficIcon
+          sx={{ color: colors.greenAccent[600], fontSize: "26px" }}
+        />
+      ),
+    },
+  ];
+  // Handle loading state to prevent the "map of undefined" error
+  if (isLoading) return <Box>Loading Transactions...</Box>;
+  if (error) return <Box>Error loading data: {error.message}</Box>;
   return (
     <Box
       m={"20px"}
@@ -35,8 +95,10 @@ const Dashboard = () => {
     >
       <Box
         display={"flex"}
+        flexDirection={{ xs: "column", sm: "row" }}
         justifyContent={"space-between"}
-        alignItems={"center"}
+        alignItems={{ xs: "flex-start", sm: "center" }}
+        gap={{ xs: "10px", sm: "0" }}
         position="sticky" // Keeps header at the top during scroll
         top="0"
         zIndex="10"
@@ -67,86 +129,28 @@ const Dashboard = () => {
         gap={"20px"}
       >
         {/* Row 1 */}
-        <Box
-          gridColumn={"span 3"}
-          backgroundColor={colors.primary[400]}
-          display={"flex"}
-          alignItems={"center"}
-          justifyContent={"center"}
-        >
-          <StatBox
-            title={"12,361"}
-            subtitle={"Emails sent"}
-            progress={"0.75"}
-            increase={"+14%"}
-            icon={
-              <EmailIcon
-                sx={{ color: colors.greenAccent[600], fontSize: "26px" }}
-              />
-            }
-          />
-        </Box>
-        <Box
-          gridColumn={"span 3"}
-          backgroundColor={colors.primary[400]}
-          display={"flex"}
-          alignItems={"center"}
-          justifyContent={"center"}
-        >
-          <StatBox
-            title={"431,225"}
-            subtitle={"Sales made"}
-            progress={"0.5"}
-            increase={"+21%"}
-            icon={
-              <PointOfSaleIcon
-                sx={{ color: colors.greenAccent[600], fontSize: "26px" }}
-              />
-            }
-          />
-        </Box>
-        <Box
-          gridColumn={"span 3"}
-          backgroundColor={colors.primary[400]}
-          display={"flex"}
-          alignItems={"center"}
-          justifyContent={"center"}
-        >
-          <StatBox
-            title={"32,441"}
-            subtitle={"New  clients"}
-            progress={"0.30"}
-            increase={"+5%"}
-            icon={
-              <PersonAddIcon
-                sx={{ color: colors.greenAccent[600], fontSize: "26px" }}
-              />
-            }
-          />
-        </Box>
-        <Box
-          gridColumn={"span 3"}
-          backgroundColor={colors.primary[400]}
-          display={"flex"}
-          alignItems={"center"}
-          justifyContent={"center"}
-        >
-          <StatBox
-            title={"1,325,134"}
-            subtitle={"Traffic Inbound"}
-            progress={"0.80"}
-            increase={"+43%"}
-            icon={
-              <TrafficIcon
-                sx={{ color: colors.greenAccent[600], fontSize: "26px" }}
-              />
-            }
-          />
-        </Box>
+        {row1.map((stat, index) => (
+          <Box
+            key={index}
+            gridColumn={{ xs: "span 12", sm: "span 6", md: "span 3" }}
+            backgroundColor={colors.primary[400]}
+            display={"flex"}
+            alignItems={"center"}
+            justifyContent={"center"}
+          >
+            <StatBox
+              title={stat.title}
+              subtitle={stat.subtitle}
+              progress={stat.progress}
+              increase={stat.increase}
+              icon={stat.icon}
+            />
+          </Box>
+        ))}
 
         {/* Row 2*/}
         <Box
-          gridColumn={"span 8"}
+          gridColumn={{ xs: "span 12", md: "span 8" }}
           gridRow={"span 2"}
           backgroundColor={colors.primary[400]}
         >
@@ -188,10 +192,9 @@ const Dashboard = () => {
           </Box>
         </Box>
 
-        {/* TRANSACTION */}
-        {/* TRANSACTION */}
+        {/* TRANSACTIONS */}
         <Box
-          gridColumn="span 4"
+          gridColumn={{ xs: "span 12", md: "span 4" }}
           gridRow="span 2"
           backgroundColor={colors.primary[400]}
           overflow="auto"
@@ -222,7 +225,7 @@ const Dashboard = () => {
             </Typography>
           </Box>
 
-          {mockTransactions.map((transaction, i) => (
+          {transactions.map((transaction, i) => (
             <Box
               key={`${transaction.txId}-${i}`}
               display={"flex"}
@@ -255,7 +258,7 @@ const Dashboard = () => {
           ))}
         </Box>
 
-        {/* Row 3 */}
+        {/* Row 3 CHARTS*/}
         <Box
           gridColumn={"span 4"}
           gridRow={"span 2"}
@@ -271,7 +274,7 @@ const Dashboard = () => {
             alignItems={"center"}
             mt={"25px"}
           >
-            <ProgressCircle size="125" />
+            <ProgressCircle size={{ xs: "100px", sm: "125px", md: "150px" }} />
             <Typography
               variant="h5"
               color={colors.greenAccent[500]}
@@ -283,7 +286,6 @@ const Dashboard = () => {
           </Box>
         </Box>
 
-        {/* */}
         <Box
           gridColumn={"span 4"}
           gridRow={"span 2"}
@@ -296,7 +298,7 @@ const Dashboard = () => {
           >
             Sales Quantity
           </Typography>
-          <Box mt={"-20px"} height={"250px"}>
+          <Box mt={"-20px"} height={{ xs: "200px", md: "250px" }}>
             <BarChart isDashboard={true} />
           </Box>
         </Box>
@@ -310,7 +312,7 @@ const Dashboard = () => {
           <Typography variant="h5" fontWeight={"600"} sx={{ mb: "15px" }}>
             Geography Based Traffic
           </Typography>
-          <Box mt={"-20px"} height={"250px"}>
+          <Box mt={"-20px"} height={{ xs: "200px", md: "250px" }}>
             <GeographyChart isDashboard={true} />
           </Box>
         </Box>
