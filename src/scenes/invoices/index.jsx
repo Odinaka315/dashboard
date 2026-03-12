@@ -14,17 +14,24 @@ const Invoices = () => {
   const colors = tokens(theme.palette.mode);
 
   const fetchInvoices = async () => {
-    const response = await fetch("http://localhost:5000/invoices");
+    const response = await fetch(
+      "https://69b13113adac80b427c44986.mockapi.io/data",
+    );
     const result = await response.json();
-
-    return result.map((user) => ({
-      ...user,
-    }));
+    return result[0];
   };
-  const { data, isLoading, isError, error } = useQuery({
-    queryKey: ["team"],
+  const {
+    data: dashboardData,
+    isLoading,
+    isError,
+    error,
+  } = useQuery({
+    queryKey: ["dashboardData"],
     queryFn: fetchInvoices,
   });
+
+  const invoices = dashboardData?.invoices || [];
+
   const columns = [
     { field: "id", headerName: "ID" },
     {
@@ -94,7 +101,7 @@ const Invoices = () => {
       >
         <DataGrid
           checkboxSelection
-          rows={data || []}
+          rows={invoices || []}
           columns={columns}
           loading={isLoading}
         />

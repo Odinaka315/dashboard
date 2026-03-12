@@ -18,17 +18,21 @@ const Dashboard = () => {
   const theme = useTheme();
   const colors = tokens(theme.palette.mode);
   const {
-    data: transactions,
+    data: dashboardData,
     isLoading,
     error,
   } = useQuery({
-    queryKey: ["transactions"],
+    queryKey: ["dashboardData"],
     queryFn: async () => {
-      const response = await fetch("http://localhost:5000/transactions");
+      const response = await fetch(
+        "https://69b13113adac80b427c44986.mockapi.io/data/1",
+      );
       if (!response.ok) throw new Error("Network response was not ok");
       return response.json();
     },
   });
+
+  const transactions = dashboardData?.transactions || [];
 
   const row1 = [
     {
@@ -75,8 +79,7 @@ const Dashboard = () => {
     },
   ];
   // Handle loading state to prevent the "map of undefined" error
-  // if (isLoading) return <Box>Loading Transactions...</Box>;
-  // if (error) return <Box>Error loading data: {error.message}</Box>;
+
   return (
     <Box
       m={"20px"}
@@ -225,37 +228,45 @@ const Dashboard = () => {
             </Typography>
           </Box>
 
-          {transactions.map((transaction, i) => (
-            <Box
-              key={`${transaction.txId}-${i}`}
-              display={"flex"}
-              justifyContent={"space-between"}
-              alignItems={"center"}
-              borderBottom={`4px solid ${colors.primary[500]}`}
-              p={"15px"}
-            >
-              <Box>
-                <Typography
-                  color={colors.greenAccent[500]}
-                  variant="h5"
-                  fontWeight={"600"}
-                >
-                  {transaction.txId}
-                </Typography>
-                <Typography color={colors.grey[100]}>
-                  {transaction.user}
-                </Typography>
-              </Box>
-              <Box color={colors.grey[100]}>{transaction.date}</Box>
-              <Box
-                backgroundColor={colors.greenAccent[500]}
-                p={"5px 10px"}
-                borderRadius={"4px"}
-              >
-                ${transaction.cost}
-              </Box>
+          {isLoading ? (
+            <Box p="15px">Loading Transactions...</Box>
+          ) : error ? (
+            <Box p="15px" color="red">
+              Error: {error.message}
             </Box>
-          ))}
+          ) : (
+            transactions.map((transaction, i) => (
+              <Box
+                key={`${transaction.txId}-${i}`}
+                display="flex"
+                justifyContent="space-between"
+                alignItems="center"
+                borderBottom={`4px solid ${colors.primary[500]}`}
+                p="15px"
+              >
+                <Box>
+                  <Typography
+                    color={colors.greenAccent[500]}
+                    variant="h5"
+                    fontWeight="600"
+                  >
+                    {transaction.txId}
+                  </Typography>
+                  <Typography color={colors.grey[100]}>
+                    {transaction.user}
+                  </Typography>
+                </Box>
+                <Box color={colors.grey[100]}>{transaction.date}</Box>
+                <Box
+                  backgroundColor={colors.greenAccent[500]}
+                  p="5px 10px"
+                  borderRadius="4px"
+                >
+                  ${transaction.cost}
+                </Box>
+              </Box>
+            ))
+          )}
         </Box>
 
         {/* Row 3 CHARTS*/}

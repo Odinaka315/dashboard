@@ -9,11 +9,16 @@ import React from "react";
 const Contacts = () => {
   const theme = useTheme();
   const colors = tokens(theme.palette.mode);
+
   const fetchContacts = async () => {
-    const response = await fetch("http://localhost:5000/users");
+    const response = await fetch(
+      "https://69b13113adac80b427c44986.mockapi.io/data",
+    );
     const result = await response.json();
 
-    return result.map((user) => ({
+    const dashboardData = result[0];
+    console.log(dashboardData);
+    return dashboardData.users.map((user) => ({
       ...user,
       // Extracting nested strings into new top-level keys
       street: user.address?.street,
@@ -21,10 +26,17 @@ const Contacts = () => {
       zipcode: user.address?.zipcode,
     }));
   };
-  const { data, isLoading, isError, error } = useQuery({
-    queryKey: ["contacts"],
+  const {
+    data: dashboardData,
+    isLoading,
+    isError,
+    error,
+  } = useQuery({
+    queryKey: ["dashboardData"],
     queryFn: fetchContacts,
   });
+
+  const contacts = dashboardData || [];
 
   const columns = [
     { field: "id", headerName: "ID", flex: 0.5 },
@@ -104,7 +116,7 @@ const Contacts = () => {
         }}
       >
         <DataGrid
-          rows={data || []}
+          rows={contacts || []}
           columns={columns}
           loading={isLoading}
           showToolbar

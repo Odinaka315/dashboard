@@ -25,6 +25,8 @@ import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
 import Header from "../../components/Header";
 import { tokens } from "../../theme";
 
+const MOCK_API_URL = "https://69b13113adac80b427c44986.mockapi.io/data/1";
+
 const Calendar = () => {
   const theme = useTheme();
   const colors = tokens(theme.palette.mode);
@@ -41,25 +43,32 @@ const Calendar = () => {
   const [recentlyDeletedEvent, setRecentlyDeletedEvent] = useState(null);
 
   // 1. Fetch Events from JSON Server
-  const { data: events = [] } = useQuery({
-    queryKey: ["events"],
+  const { data: dashboardData } = useQuery({
+    queryKey: ["dashboardData"],
     queryFn: async () => {
-      const response = await fetch("http://localhost:5000/events");
+      const response = await fetch(MOCK_API_URL);
+      if (!response.ok) throw new Error("Failed to fetch dashboard");
       return response.json();
     },
   });
 
+  const events = dashboardData?.events || [];
+
+  // Helper function to update the server
+  const saveToMockAPI = async (updatedEvents) => {
+    const response = await fetch(MOCK_API_URL, {
+      method: "PUT",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({ ...dashboardData, events: updatedEvents }),
+    });
+    if (!response.ok) throw new Error("Failed to update server");
+    return response.json();
+  };
   // 2. Mutation to Add Event
   const addMutation = useMutation({
-    mutationFn: async (newEvent) => {
-      await fetch("http://localhost:5000/events", {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify(newEvent),
-      });
-    },
+    mutationFn: (newEvent) => saveToMockAPI([...events, newEvent]),
     onSuccess: () => {
-      queryClient.invalidateQueries(["events"]);
+      queryClient.invalidateQueries(["dashboardData"]);
       setIsAddOpen(false);
       setNewEventTitle("");
     },
@@ -67,58 +76,37 @@ const Calendar = () => {
 
   // 3. Mutation to Delete Event
   const deleteMutation = useMutation({
-    mutationFn: async (eventId) => {
-      await fetch(`http://localhost:5000/events/${eventId}`, {
-        method: "DELETE",
-      });
-    },
+    mutationFn: (eventId) =>
+      saveToMockAPI(events.filter((e) => e.id !== eventId)),
     onMutate: async (eventId) => {
-      await queryClient.cancelQueries({ queryKey: ["events"] });
-      const previousEvents = queryClient.getQueryData(["events"]);
+      await queryClient.cancelQueries({ queryKey: ["dashboardData"] });
+      const previousData = queryClient.getQueryData(["dashboardData"]);
 
-      const eventToSave = previousEvents?.find((e) => e.id === eventId);
-      if (eventToSave) {
-        setRecentlyDeletedEvent({
-          id: eventToSave.id,
-          title: eventToSave.title,
-          start: eventToSave.start,
-          end: eventToSave.end,
-          allDay: eventToSave.allDay,
-        });
-      }
+      // Save for Undo logic
+      const eventToSave = previousData?.events?.find((e) => e.id === eventId);
+      if (eventToSave) setRecentlyDeletedEvent(eventToSave);
 
-      queryClient.setQueryData(["events"], (old) =>
-        old?.filter((event) => event.id !== eventId),
-      );
-
-      return { previousEvents };
+      return { previousData };
     },
     onSuccess: () => {
-      console.log("onSettled removed - new code is running");
       setTimeout(() => setShowUndo(true), 100);
       setIsDeleteOpen(false);
-      setShowUndo(true);
+      queryClient.invalidateQueries(["dashboardData"]);
     },
-    onError: (err, eventId, context) => {
-      // Rollback on failure
-      queryClient.setQueryData(["events"], context.previousEvents);
+    onError: (err, variables, context) => {
+      queryClient.setQueryData(["dashboardData"], context.previousData);
     },
-    // ✅ onSettled removed — no refetch that would disrupt snackbar state
   });
 
   //Mutation to update events
   const updateMutation = useMutation({
-    mutationFn: async (updatedEvent) => {
-      // We use PATCH to only update the fields that changed (like 'start' and 'end')
-      await fetch(`http://localhost:5000/events/${updatedEvent.id}`, {
-        method: "PATCH",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify(updatedEvent),
-      });
+    mutationFn: (updatedEvent) => {
+      const newEvents = events.map((e) =>
+        e.id === updatedEvent.id ? { ...e, ...updatedEvent } : e,
+      );
+      return saveToMockAPI(newEvents);
     },
-    onSuccess: () => {
-      queryClient.invalidateQueries(["events"]);
-    },
+    onSuccess: () => queryClient.invalidateQueries(["dashboardData"]),
   });
 
   const handleDateClick = (selected) => {

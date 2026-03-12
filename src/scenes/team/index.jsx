@@ -14,17 +14,24 @@ const Team = () => {
   const colors = tokens(theme.palette.mode);
 
   const fetchTeam = async () => {
-    const response = await fetch("http://localhost:5000/team");
+    const response = await fetch(
+      "https://69b13113adac80b427c44986.mockapi.io/data",
+    );
     const result = await response.json();
 
-    return result.map((user) => ({
-      ...user,
-    }));
+    return result[0];
   };
-  const { data, isLoading, isError, error } = useQuery({
-    queryKey: ["team"],
+  const {
+    data: dashboardData,
+    isLoading,
+    isError,
+    error,
+  } = useQuery({
+    queryKey: ["dashboardData"],
     queryFn: fetchTeam,
   });
+  const team = dashboardData?.team || [];
+
   const columns = [
     { field: "id", headerName: "ID" },
     {
@@ -110,7 +117,7 @@ const Team = () => {
           },
         }}
       >
-        <DataGrid rows={data || []} columns={columns} loading={isLoading} />
+        <DataGrid rows={team || []} columns={columns} loading={isLoading} />
         {isError && <div style={{ color: "red" }}>Error: {error.message}</div>}
       </Box>
     </Box>
